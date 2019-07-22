@@ -3,9 +3,11 @@ package com.example.authtest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,6 +17,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import static com.example.authtest.SecurityConstants.SIGN_UP_URL;
 
 @Configuration
 @EnableWebSecurity
@@ -94,6 +98,32 @@ public class MultipleEntryPointsSecurityConfig {
 
     @Configuration
     @Order(3)
+    public static class App4ConfigurationAdapter extends WebSecurityConfigurerAdapter {
+
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            //@formatter:off
+//            http.antMatcher("/api/**")
+//                    .authorizeRequests().anyRequest().hasRole("ADMIN")
+//                    .and().httpBasic().authenticationEntryPoint(authenticationEntryPoint())
+//                    .and().exceptionHandling().accessDeniedPage("/403");
+            //@formatter:on
+
+            http.cors().and().csrf().disable().antMatcher("/api/**").authorizeRequests()
+                    .antMatchers(HttpMethod.POST, SIGN_UP_URL).permitAll()
+                    .anyRequest().authenticated()
+                    .and()
+                    .addFilter(new JWTAuthenticationFilter(authenticationManager()))
+                    .addFilter(new JWTAuthorizationFilter(authenticationManager()))
+                    // this disables session creation on Spring Security
+                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        }
+
+
+    }
+
+    @Configuration
+    @Order(4)
     public static class App3ConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
         protected void configure(HttpSecurity http) throws Exception {

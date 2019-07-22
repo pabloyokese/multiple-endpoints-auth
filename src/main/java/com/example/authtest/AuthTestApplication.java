@@ -26,6 +26,14 @@ public class AuthTestApplication {
 //    }
 //}
 
+@RestController
+class RestApiController{
+    @GetMapping("/api/test")
+    public String test(){
+        return "something";
+    }
+}
+
 @Controller
 class RestTestController{
 
